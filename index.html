@@ -712,7 +712,7 @@ label.gender:has(input:checked) { background: var(--blue); border-color: var(--b
 
 <!-- SUBMIT -->
 <div class="submit-area">
-  <button class="submit-btn" id="submit-btn" onclick="sendToSheets()">
+  <button class="submit-btn" id="submit-btn" type="button">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
     Soumettre mes réponses
   </button>
@@ -835,12 +835,31 @@ function sendToSheets() {
 }
 
 function showSuccess() {
-  if (document.getElementById('form-area').style.display === 'none') return; // déjà appelé
+  if (document.getElementById('form-area').style.display === 'none') return;
   document.getElementById('form-area').style.display = 'none';
   document.getElementById('success').style.display = 'block';
   document.querySelector('.prog').style.display = 'none';
   window.scrollTo(0, 0);
 }
+
+// ── INITIALISATION ──
+window.addEventListener('load', function() {
+  var btn = document.getElementById('submit-btn');
+
+  // Mettre le contenu du bouton
+  btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Soumettre mes réponses';
+
+  // iOS Safari : utiliser touchend + preventDefault pour éviter le délai 300ms
+  btn.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    sendToSheets();
+  });
+
+  // Fallback pour desktop et Android
+  btn.addEventListener('click', function(e) {
+    sendToSheets();
+  });
+});
 </script>
 </body>
 </html>
