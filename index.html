@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Questionnaire JFN-HUI</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --blue: #1B3A6B;
+  --blue2: #2A5298;
+  --gold: #E8A020;
+  --bg: #F0F2F7;
+  --white: #fff;
+  --text: #111827;
+  --muted: #6B7280;
+  --border: #D1D5DB;
+  --green: #16A34A;
+  --red: #DC2626;
+  --radius: 14px;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* HEADER */
+.hdr {
+  background: linear-gradient(155deg, var(--blue) 0%, var(--blue2) 100%);
+  color: #fff;
+  padding: 50px 20px 32px;
+  text-align: center;
+}
+.hdr-icon {
+  width: 54px; height: 54px;
+  background: var(--gold);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  margin: 0 auto 14px;
+  box-shadow: 0 4px 14px rgba(232,160,32,0.45);
+}
+.hdr h1 { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
+.hdr p  { font-size: 13px; opacity: .82; line-height: 1.6; margin-bottom: 14px; }
+.conf-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,.15);
+  border-radius: 20px; padding: 6px 14px; font-size: 12px;
+}
+
+/* PROGRESS */
+.prog {
+  background: var(--white);
+  padding: 10px 18px;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
+}
+.prog-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+.prog-track { height: 5px; background: #E5E7EB; border-radius: 3px; overflow: hidden; }
+.prog-fill  { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--blue), var(--gold)); transition: width .3s ease; width: 0; }
+
+/* SECTION LABEL */
+.sec {
+  display: flex; align-items: center; gap: 10px;
+  margin: 22px 16px 8px;
+}
+.sec-ico {
+  width: 32px; height: 32px;
+  background: var(--blue); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0;
+}
+.sec span { font-size: 13px; font-weight: 700; color: var(--blue); }
+
+/* CARD */
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  margin: 0 14px 12px;
+  padding: 18px 16px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.06);
+  border-left: 3px solid transparent;
+  transition: border-color .2s;
+}
+.card.ok { border-left-color: var(--green); }
+
+.q-lbl { font-size: 11px; font-weight: 700; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.q-txt { font-size: 15px; font-weight: 600; line-height: 1.45; margin-bottom: 3px; }
+.q-hint { font-size: 12px; color: var(--muted); font-style: italic; margin-bottom: 12px; }
+.req { color: var(--red); }
+
+/* ── NATIVE RADIO / CHECKBOX HIDDEN, LABEL STYLED ── */
+.opt-list { display: flex; flex-direction: column; gap: 8px; }
+.opt-list-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* hide the native input but keep it accessible */
+.opt-list input[type="radio"],
+.opt-list input[type="checkbox"],
+.opt-row  input[type="radio"],
+.opt-row  input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0; height: 0;
+  pointer-events: none;
+}
+
+/* the visible label */
+label.opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--white);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  min-height: 48px;  /* iOS tap target */
+  transition: background .15s, border-color .15s, color .15s;
+}
+label.opt .ck {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  transition: all .15s;
+}
+
+/* checked state driven by :has() — works on iOS 16+ Safari */
+label.opt:has(input:checked) {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+label.opt:has(input:checked) .ck {
+  border-color: #fff;
+  background: rgba(255,255,255,.25);
+}
+label.opt:has(input:checked) .ck::after { content: '✓'; color: #fff; font-weight: 700; }
+
+/* SCALE buttons — full width stacked */
+.scale-list { display: flex; flex-direction: column; gap: 7px; }
+label.scale {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--white);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  min-height: 48px;
+  transition: background .15s, border-color .15s, color .15s;
+}
+label.scale input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+label.scale .ck {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+}
+label.scale:has(input:checked) { background: var(--blue); border-color: var(--blue); color: #fff; }
+label.scale:has(input:checked) .ck { border-color: #fff; background: rgba(255,255,255,.25); }
+label.scale:has(input:checked) .ck::after { content: '✓'; color: #fff; font-weight: 700; }
+
+/* GENDER */
+.gender-row { display: flex; gap: 10px; }
+label.gender {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px;
+  padding: 14px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  min-height: 72px;
+  transition: background .15s, border-color .15s, color .15s;
+}
+label.gender input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+label.gender:has(input:checked) { background: var(--blue); border-color: var(--blue); color: #fff; }
+.g-emoji { font-size: 26px; }
+
+/* TEXTAREA */
+.q-ta {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  resize: none;
+  min-height: 90px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--white);
+}
+.q-ta:focus { border-color: var(--blue); }
+
+/* RANKING */
+.rank-list { display: flex; flex-direction: column; gap: 7px; }
+.rank-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.rank-name { flex: 1; font-size: 13px; font-weight: 500; }
+.rank-sel {
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--blue);
+  background: var(--white);
+  outline: none;
+  min-width: 56px;
+  min-height: 40px;
+  -webkit-appearance: auto;
+  appearance: auto;
+}
+
+/* FILIERE */
+.fil-grp { margin-bottom: 14px; }
+.fil-ttl {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .7px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 5px; margin-bottom: 8px;
+}
+.fil-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+
+/* SUBMIT */
+.submit-area { padding: 20px 16px 52px; text-align: center; }
+.submit-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%;
+  padding: 16px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 16px; font-weight: 700;
+  cursor: pointer;
+  min-height: 54px;
+  box-shadow: 0 4px 16px rgba(27,58,107,.35);
+  -webkit-appearance: none; appearance: none;
+  transition: opacity .15s;
+}
+.submit-btn:active { opacity: .85; }
+.submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.submit-note { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+
+/* SUCCESS */
+.success { display: none; text-align: center; padding: 80px 24px 60px; }
+.suc-circle {
+  width: 78px; height: 78px;
+  background: var(--green);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  margin: 0 auto 22px;
+  box-shadow: 0 6px 20px rgba(22,163,74,.3);
+}
+.success h2 { font-size: 21px; font-weight: 700; color: var(--blue); margin-bottom: 10px; }
+.success p  { font-size: 14px; color: var(--muted); line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-icon">🎓</div>
+  <h1>Évaluation de votre Institut</h1>
+  <p>Votre avis nous aide à améliorer votre encadrement et vos conditions de travail à JFN-HUI.</p>
+  <div class="conf-tag">🔒 Réponses strictement confidentielles</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog">
+  <div class="prog-row">
+    <span id="prog-txt">0 réponse enregistrée</span>
+    <span id="prog-pct">0%</span>
+  </div>
+  <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+</div>
+
+<!-- ═══════ FORMULAIRE ═══════ -->
+<div id="form-area">
+
+<!-- SECTION 1 -->
+<div class="sec"><div class="sec-ico">📣</div><span>Découverte de JFN</span></div>
+
+<div class="card" id="c-q1">
+  <div class="q-lbl">Q1</div>
+  <div class="q-txt">Comment avez-vous fait la connaissance de JFN ? <span class="req">*</span></div>
+  <div class="q-hint">Plusieurs réponses possibles</div>
+  <div class="opt-list-row" id="q1-wrap">
+    <label class="opt"><input type="checkbox" name="q1" value="Par prospectus" onchange="onCheck('q1','c-q1')"><span class="ck"></span>Par prospectus</label>
+    <label class="opt"><input type="checkbox" name="q1" value="Par un proche" onchange="onCheck('q1','c-q1')"><span class="ck"></span>Par un proche</label>
+    <label class="opt"><input type="checkbox" name="q1" value="Par média (radio/TV)" onchange="onCheck('q1','c-q1')"><span class="ck"></span>Par média (radio/TV)</label>
+    <label class="opt"><input type="checkbox" name="q1" value="Pendant les JPO" onchange="onCheck('q1','c-q1')"><span class="ck"></span>Pendant les JPO</label>
+    <label class="opt"><input type="checkbox" name="q1" value="Internet / Réseaux sociaux" onchange="onCheck('q1','c-q1')"><span class="ck"></span>Internet / Réseaux sociaux</label>
+    <label class="opt"><input type="checkbox" name="q1" value="Lors des soutenances" onchange="onCheck('q1','c-q1')"><span class="ck"></span>Lors des soutenances</label>
+    <label class="opt"><input type="checkbox" name="q1" value="Par une banderole" onchange="onCheck('q1','c-q1')"><span class="ck"></span>Par une banderole</label>
+    <label class="opt"><input type="checkbox" name="q1" value="Prospection Collège/Lycée" onchange="onCheck('q1','c-q1')"><span class="ck"></span>Prospection Collège/Lycée</label>
+  </div>
+  <textarea class="q-ta" id="q1-autre" placeholder="Autre source (précisez)…" rows="2" style="margin-top:10px" oninput="prog()"></textarea>
+</div>
+
+<!-- SECTION 2 -->
+<div class="sec"><div class="sec-ico">🏛️</div><span>Infrastructures & Cadre</span></div>
+
+<div class="card" id="c-q2">
+  <div class="q-lbl">Q2</div><div class="q-txt">Appréciation générale de JFN <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q2" value="Très beau" onchange="onRadio('c-q2')"><span class="ck"></span>Très beau</label>
+    <label class="scale"><input type="radio" name="q2" value="Beau" onchange="onRadio('c-q2')"><span class="ck"></span>Beau</label>
+    <label class="scale"><input type="radio" name="q2" value="Assez beau" onchange="onRadio('c-q2')"><span class="ck"></span>Assez beau</label>
+    <label class="scale"><input type="radio" name="q2" value="Pas beau" onchange="onRadio('c-q2')"><span class="ck"></span>Pas beau</label>
+    <label class="scale"><input type="radio" name="q2" value="Pas du tout beau" onchange="onRadio('c-q2')"><span class="ck"></span>Pas du tout beau</label>
+  </div>
+</div>
+
+<div class="card" id="c-q3">
+  <div class="q-lbl">Q3</div><div class="q-txt">Salles de classe — espace disponible <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q3" value="Spacieuse" onchange="onRadio('c-q3')"><span class="ck"></span>Spacieuse</label>
+    <label class="scale"><input type="radio" name="q3" value="Peu spacieuse" onchange="onRadio('c-q3')"><span class="ck"></span>Peu spacieuse</label>
+    <label class="scale"><input type="radio" name="q3" value="Pas spacieuse" onchange="onRadio('c-q3')"><span class="ck"></span>Pas spacieuse</label>
+  </div>
+</div>
+
+<div class="card" id="c-q4">
+  <div class="q-lbl">Q4</div><div class="q-txt">Tables-bancs — confort <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q4" value="Très confortable" onchange="onRadio('c-q4')"><span class="ck"></span>Très confortable</label>
+    <label class="scale"><input type="radio" name="q4" value="Confortable" onchange="onRadio('c-q4')"><span class="ck"></span>Confortable</label>
+    <label class="scale"><input type="radio" name="q4" value="Peu confortable" onchange="onRadio('c-q4')"><span class="ck"></span>Peu confortable</label>
+    <label class="scale"><input type="radio" name="q4" value="Pas confortable" onchange="onRadio('c-q4')"><span class="ck"></span>Pas confortable</label>
+  </div>
+</div>
+
+<div class="card" id="c-q5">
+  <div class="q-lbl">Q5</div><div class="q-txt">Tableaux — dimensions <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q5" value="Petit" onchange="onRadio('c-q5')"><span class="ck"></span>Petit</label>
+    <label class="scale"><input type="radio" name="q5" value="Moyen" onchange="onRadio('c-q5')"><span class="ck"></span>Moyen</label>
+    <label class="scale"><input type="radio" name="q5" value="Grand" onchange="onRadio('c-q5')"><span class="ck"></span>Grand</label>
+  </div>
+</div>
+
+<div class="card" id="c-q6">
+  <div class="q-lbl">Q6</div><div class="q-txt">Disponibilité de l'énergie électrique <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q6" value="Toujours disponible" onchange="onRadio('c-q6')"><span class="ck"></span>Toujours disponible</label>
+    <label class="scale"><input type="radio" name="q6" value="Souvent disponible" onchange="onRadio('c-q6')"><span class="ck"></span>Souvent disponible</label>
+    <label class="scale"><input type="radio" name="q6" value="Parfois disponible" onchange="onRadio('c-q6')"><span class="ck"></span>Parfois disponible</label>
+    <label class="scale"><input type="radio" name="q6" value="Rarement disponible" onchange="onRadio('c-q6')"><span class="ck"></span>Rarement disponible</label>
+    <label class="scale"><input type="radio" name="q6" value="Jamais disponible" onchange="onRadio('c-q6')"><span class="ck"></span>Jamais disponible</label>
+  </div>
+</div>
+
+<div class="card" id="c-q7">
+  <div class="q-lbl">Q7</div><div class="q-txt">Propreté des toilettes <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q7" value="Propres" onchange="onRadio('c-q7')"><span class="ck"></span>Propres</label>
+    <label class="scale"><input type="radio" name="q7" value="Peu propres" onchange="onRadio('c-q7')"><span class="ck"></span>Peu propres</label>
+    <label class="scale"><input type="radio" name="q7" value="Pas propres" onchange="onRadio('c-q7')"><span class="ck"></span>Pas propres</label>
+  </div>
+</div>
+
+<div class="card" id="c-q8">
+  <div class="q-lbl">Q8</div><div class="q-txt">Cantine — niveau des prix <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q8" value="Prix élevés" onchange="onRadio('c-q8')"><span class="ck"></span>Prix élevés</label>
+    <label class="scale"><input type="radio" name="q8" value="Acceptables" onchange="onRadio('c-q8')"><span class="ck"></span>Acceptables</label>
+    <label class="scale"><input type="radio" name="q8" value="Peu chers" onchange="onRadio('c-q8')"><span class="ck"></span>Peu chers</label>
+  </div>
+</div>
+
+<div class="card" id="c-q9">
+  <div class="q-lbl">Q9</div><div class="q-txt">Cantine — qualité des repas <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q9" value="Bonne" onchange="onRadio('c-q9')"><span class="ck"></span>Bonne</label>
+    <label class="scale"><input type="radio" name="q9" value="Neutre" onchange="onRadio('c-q9')"><span class="ck"></span>Neutre</label>
+    <label class="scale"><input type="radio" name="q9" value="Pas bonne" onchange="onRadio('c-q9')"><span class="ck"></span>Pas bonne</label>
+  </div>
+</div>
+
+<div class="card" id="c-q10">
+  <div class="q-lbl">Q10</div><div class="q-txt">Salle multimédia (bibliothèque, internet…) <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q10" value="Très documentée" onchange="onRadio('c-q10')"><span class="ck"></span>Très documentée</label>
+    <label class="scale"><input type="radio" name="q10" value="Documentée" onchange="onRadio('c-q10')"><span class="ck"></span>Documentée</label>
+    <label class="scale"><input type="radio" name="q10" value="Peu documentée" onchange="onRadio('c-q10')"><span class="ck"></span>Peu documentée</label>
+    <label class="scale"><input type="radio" name="q10" value="Pas documentée" onchange="onRadio('c-q10')"><span class="ck"></span>Pas documentée</label>
+    <label class="scale"><input type="radio" name="q10" value="Pas du tout documentée" onchange="onRadio('c-q10')"><span class="ck"></span>Pas du tout documentée</label>
+  </div>
+</div>
+
+<div class="card" id="c-q11">
+  <div class="q-lbl">Q11</div><div class="q-txt">Ateliers de travail — équipement <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q11" value="Très équipé" onchange="onRadio('c-q11')"><span class="ck"></span>Très équipé</label>
+    <label class="scale"><input type="radio" name="q11" value="Équipé" onchange="onRadio('c-q11')"><span class="ck"></span>Équipé</label>
+    <label class="scale"><input type="radio" name="q11" value="Peu équipé" onchange="onRadio('c-q11')"><span class="ck"></span>Peu équipé</label>
+    <label class="scale"><input type="radio" name="q11" value="Pas équipé" onchange="onRadio('c-q11')"><span class="ck"></span>Pas équipé</label>
+    <label class="scale"><input type="radio" name="q11" value="Pas du tout équipé" onchange="onRadio('c-q11')"><span class="ck"></span>Pas du tout équipé</label>
+  </div>
+</div>
+
+<div class="card" id="c-q12">
+  <div class="q-lbl">Q12</div><div class="q-txt">Sécurité dans et autour de l'Institut <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q12" value="Sûre" onchange="onRadio('c-q12')"><span class="ck"></span>Sûre</label>
+    <label class="scale"><input type="radio" name="q12" value="Peu sûre" onchange="onRadio('c-q12')"><span class="ck"></span>Peu sûre</label>
+    <label class="scale"><input type="radio" name="q12" value="Pas du tout sûre" onchange="onRadio('c-q12')"><span class="ck"></span>Pas du tout sûre</label>
+  </div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="sec"><div class="sec-ico">⚽</div><span>Vie sur le Campus</span></div>
+
+<div class="card" id="c-q13">
+  <div class="q-lbl">Q13</div><div class="q-txt">Cadre sportif <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q13" value="Praticable" onchange="onRadio('c-q13')"><span class="ck"></span>Praticable</label>
+    <label class="scale"><input type="radio" name="q13" value="Peu praticable" onchange="onRadio('c-q13')"><span class="ck"></span>Peu praticable</label>
+    <label class="scale"><input type="radio" name="q13" value="Pas du tout praticable" onchange="onRadio('c-q13')"><span class="ck"></span>Pas du tout praticable</label>
+  </div>
+</div>
+
+<div class="card" id="c-q14">
+  <div class="q-lbl">Q14</div><div class="q-txt">Activités culturelles et sportives <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q14" value="Vivantes" onchange="onRadio('c-q14')"><span class="ck"></span>Vivantes</label>
+    <label class="scale"><input type="radio" name="q14" value="Peu vivantes" onchange="onRadio('c-q14')"><span class="ck"></span>Peu vivantes</label>
+    <label class="scale"><input type="radio" name="q14" value="Pas vivantes" onchange="onRadio('c-q14')"><span class="ck"></span>Pas vivantes</label>
+    <label class="scale"><input type="radio" name="q14" value="Pas du tout vivantes" onchange="onRadio('c-q14')"><span class="ck"></span>Pas du tout vivantes</label>
+  </div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="sec"><div class="sec-ico">🏢</div><span>Administration & Services</span></div>
+
+<div class="card" id="c-q15">
+  <div class="q-lbl">Q15</div><div class="q-txt">Professionnalisme de l'Administration <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q15" value="Très professionnelle" onchange="onRadio('c-q15')"><span class="ck"></span>Très professionnelle</label>
+    <label class="scale"><input type="radio" name="q15" value="Professionnelle" onchange="onRadio('c-q15')"><span class="ck"></span>Professionnelle</label>
+    <label class="scale"><input type="radio" name="q15" value="Peu professionnelle" onchange="onRadio('c-q15')"><span class="ck"></span>Peu professionnelle</label>
+    <label class="scale"><input type="radio" name="q15" value="Pas professionnelle" onchange="onRadio('c-q15')"><span class="ck"></span>Pas professionnelle</label>
+  </div>
+</div>
+
+<div class="card" id="c-q16">
+  <div class="q-lbl">Q16</div><div class="q-txt">Service d'accueil <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q16" value="Accueillant" onchange="onRadio('c-q16')"><span class="ck"></span>Accueillant</label>
+    <label class="scale"><input type="radio" name="q16" value="Peu accueillant" onchange="onRadio('c-q16')"><span class="ck"></span>Peu accueillant</label>
+    <label class="scale"><input type="radio" name="q16" value="Pas accueillant" onchange="onRadio('c-q16')"><span class="ck"></span>Pas accueillant</label>
+  </div>
+</div>
+
+<div class="card" id="c-q17">
+  <div class="q-lbl">Q17</div><div class="q-txt">Gestion de la communication interne <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q17" value="Très efficace" onchange="onRadio('c-q17')"><span class="ck"></span>Très efficace</label>
+    <label class="scale"><input type="radio" name="q17" value="Efficace" onchange="onRadio('c-q17')"><span class="ck"></span>Efficace</label>
+    <label class="scale"><input type="radio" name="q17" value="Peu efficace" onchange="onRadio('c-q17')"><span class="ck"></span>Peu efficace</label>
+    <label class="scale"><input type="radio" name="q17" value="Pas efficace" onchange="onRadio('c-q17')"><span class="ck"></span>Pas efficace</label>
+    <label class="scale"><input type="radio" name="q17" value="Pas du tout efficace" onchange="onRadio('c-q17')"><span class="ck"></span>Pas du tout efficace</label>
+  </div>
+</div>
+
+<div class="card" id="c-q18">
+  <div class="q-lbl">Q18</div><div class="q-txt">Service de reprographie (impression, photocopie) <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q18" value="Très rapide" onchange="onRadio('c-q18')"><span class="ck"></span>Très rapide</label>
+    <label class="scale"><input type="radio" name="q18" value="Rapide" onchange="onRadio('c-q18')"><span class="ck"></span>Rapide</label>
+    <label class="scale"><input type="radio" name="q18" value="Lent" onchange="onRadio('c-q18')"><span class="ck"></span>Lent</label>
+    <label class="scale"><input type="radio" name="q18" value="Très lent" onchange="onRadio('c-q18')"><span class="ck"></span>Très lent</label>
+  </div>
+</div>
+
+<div class="card" id="c-q19">
+  <div class="q-lbl">Q19</div><div class="q-txt">Discipline au sein de l'Institut <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q19" value="Très stricte" onchange="onRadio('c-q19')"><span class="ck"></span>Très stricte</label>
+    <label class="scale"><input type="radio" name="q19" value="Stricte" onchange="onRadio('c-q19')"><span class="ck"></span>Stricte</label>
+    <label class="scale"><input type="radio" name="q19" value="Assez stricte" onchange="onRadio('c-q19')"><span class="ck"></span>Assez stricte</label>
+    <label class="scale"><input type="radio" name="q19" value="Peu stricte" onchange="onRadio('c-q19')"><span class="ck"></span>Peu stricte</label>
+    <label class="scale"><input type="radio" name="q19" value="Pas stricte" onchange="onRadio('c-q19')"><span class="ck"></span>Pas stricte</label>
+    <label class="scale"><input type="radio" name="q19" value="Pas du tout stricte" onchange="onRadio('c-q19')"><span class="ck"></span>Pas du tout stricte</label>
+  </div>
+</div>
+
+<!-- SECTION 5 -->
+<div class="sec"><div class="sec-ico">👨‍🏫</div><span>Corps Enseignant</span></div>
+
+<div class="card" id="c-q20">
+  <div class="q-lbl">Q20</div><div class="q-txt">Compétence générale des enseignants <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q20" value="Très compétents" onchange="onRadio('c-q20')"><span class="ck"></span>Très compétents</label>
+    <label class="scale"><input type="radio" name="q20" value="Compétents" onchange="onRadio('c-q20')"><span class="ck"></span>Compétents</label>
+    <label class="scale"><input type="radio" name="q20" value="Peu compétents" onchange="onRadio('c-q20')"><span class="ck"></span>Peu compétents</label>
+    <label class="scale"><input type="radio" name="q20" value="Pas compétents" onchange="onRadio('c-q20')"><span class="ck"></span>Pas compétents</label>
+  </div>
+</div>
+
+<div class="card" id="c-q21">
+  <div class="q-lbl">Q21</div><div class="q-txt">Ponctualité des enseignants <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q21" value="Ponctuel" onchange="onRadio('c-q21')"><span class="ck"></span>Ponctuel</label>
+    <label class="scale"><input type="radio" name="q21" value="Peu ponctuel" onchange="onRadio('c-q21')"><span class="ck"></span>Peu ponctuel</label>
+    <label class="scale"><input type="radio" name="q21" value="Pas ponctuel" onchange="onRadio('c-q21')"><span class="ck"></span>Pas ponctuel</label>
+  </div>
+</div>
+
+<div class="card" id="c-q22">
+  <div class="q-lbl">Q22</div><div class="q-txt">Régularité des enseignants <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q22" value="Très régulier" onchange="onRadio('c-q22')"><span class="ck"></span>Très régulier</label>
+    <label class="scale"><input type="radio" name="q22" value="Régulier" onchange="onRadio('c-q22')"><span class="ck"></span>Régulier</label>
+    <label class="scale"><input type="radio" name="q22" value="Peu régulier" onchange="onRadio('c-q22')"><span class="ck"></span>Peu régulier</label>
+    <label class="scale"><input type="radio" name="q22" value="Pas régulier" onchange="onRadio('c-q22')"><span class="ck"></span>Pas régulier</label>
+  </div>
+</div>
+
+<div class="card" id="c-q23">
+  <div class="q-lbl">Q23</div><div class="q-txt">Disponibilité des enseignants hors cours <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q23" value="Disponible" onchange="onRadio('c-q23')"><span class="ck"></span>Disponible</label>
+    <label class="scale"><input type="radio" name="q23" value="Peu disponible" onchange="onRadio('c-q23')"><span class="ck"></span>Peu disponible</label>
+    <label class="scale"><input type="radio" name="q23" value="Pas disponible" onchange="onRadio('c-q23')"><span class="ck"></span>Pas disponible</label>
+  </div>
+</div>
+
+<div class="card" id="c-q24">
+  <div class="q-lbl">Q24</div><div class="q-txt">Capacité à transmettre la connaissance <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q24" value="Très performant" onchange="onRadio('c-q24')"><span class="ck"></span>Très performant</label>
+    <label class="scale"><input type="radio" name="q24" value="Performant" onchange="onRadio('c-q24')"><span class="ck"></span>Performant</label>
+    <label class="scale"><input type="radio" name="q24" value="Assez performant" onchange="onRadio('c-q24')"><span class="ck"></span>Assez performant</label>
+    <label class="scale"><input type="radio" name="q24" value="Peu performant" onchange="onRadio('c-q24')"><span class="ck"></span>Peu performant</label>
+    <label class="scale"><input type="radio" name="q24" value="Pas performant" onchange="onRadio('c-q24')"><span class="ck"></span>Pas performant</label>
+    <label class="scale"><input type="radio" name="q24" value="Pas du tout performant" onchange="onRadio('c-q24')"><span class="ck"></span>Pas du tout performant</label>
+  </div>
+</div>
+
+<div class="card" id="c-q25">
+  <div class="q-lbl">Q25</div><div class="q-txt">Volet pratique des cours <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q25" value="Très pratique" onchange="onRadio('c-q25')"><span class="ck"></span>Très pratique</label>
+    <label class="scale"><input type="radio" name="q25" value="Pratique" onchange="onRadio('c-q25')"><span class="ck"></span>Pratique</label>
+    <label class="scale"><input type="radio" name="q25" value="Assez pratique" onchange="onRadio('c-q25')"><span class="ck"></span>Assez pratique</label>
+    <label class="scale"><input type="radio" name="q25" value="Peu pratique" onchange="onRadio('c-q25')"><span class="ck"></span>Peu pratique</label>
+    <label class="scale"><input type="radio" name="q25" value="Pas pratique" onchange="onRadio('c-q25')"><span class="ck"></span>Pas pratique</label>
+    <label class="scale"><input type="radio" name="q25" value="Pas du tout pratique" onchange="onRadio('c-q25')"><span class="ck"></span>Pas du tout pratique</label>
+  </div>
+</div>
+
+<!-- SECTION 6 -->
+<div class="sec"><div class="sec-ico">📊</div><span>Classements & Préférences</span></div>
+
+<div class="card" id="c-q26">
+  <div class="q-lbl">Q26</div>
+  <div class="q-txt">Classez les critères de choix d'un Institut</div>
+  <div class="q-hint">1 = le plus important · 9 = le moins important</div>
+  <div class="rank-list" id="q26-list">
+    <div class="rank-row"><span class="rank-name">Taux de réussite</span><select class="rank-sel" id="r26-0" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">Frais de scolarité</span><select class="rank-sel" id="r26-1" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">Insertion professionnelle</span><select class="rank-sel" id="r26-2" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">Cadre de formation</span><select class="rank-sel" id="r26-3" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">Réputation</span><select class="rank-sel" id="r26-4" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">Proximité domicile</span><select class="rank-sel" id="r26-5" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">Offre de bourse</span><select class="rank-sel" id="r26-6" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">Équipements de formation</span><select class="rank-sel" id="r26-7" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">Atouts divers (stage, résidence…)</span><select class="rank-sel" id="r26-8" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+  </div>
+</div>
+
+<div class="card" id="c-q27">
+  <div class="q-lbl">Q27</div>
+  <div class="q-txt">Classez les établissements selon votre préférence</div>
+  <div class="q-hint">9 = votre préféré · 1 = votre dernier choix</div>
+  <div class="rank-list" id="q27-list">
+    <div class="rank-row"><span class="rank-name">IUGET</span><select class="rank-sel" id="r27-0" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">IUC</span><select class="rank-sel" id="r27-1" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">IME</span><select class="rank-sel" id="r27-2" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">JFN</span><select class="rank-sel" id="r27-3" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">IUG (ESG/ISTAG…)</span><select class="rank-sel" id="r27-4" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">ISTAMA</span><select class="rank-sel" id="r27-5" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+    <div class="rank-row"><span class="rank-name">IUL (Leader)</span><select class="rank-sel" id="r27-6" onchange="prog()"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+  </div>
+</div>
+
+<div class="card" id="c-q28">
+  <div class="q-lbl">Q28</div>
+  <div class="q-txt">Vos propositions pour améliorer les conditions de travail</div>
+  <textarea class="q-ta" id="q28" placeholder="Écrivez vos suggestions ici…" rows="4" oninput="prog()"></textarea>
+</div>
+
+<!-- SECTION 7 -->
+<div class="sec"><div class="sec-ico">👤</div><span>Votre Profil</span></div>
+
+<div class="card" id="c-q29">
+  <div class="q-lbl">Q29</div><div class="q-txt">Votre sexe <span class="req">*</span></div>
+  <div class="gender-row">
+    <label class="gender"><input type="radio" name="q29" value="Masculin" onchange="onRadio('c-q29')"><span class="g-emoji">👨</span>Masculin</label>
+    <label class="gender"><input type="radio" name="q29" value="Féminin" onchange="onRadio('c-q29')"><span class="g-emoji">👩</span>Féminin</label>
+  </div>
+</div>
+
+<div class="card" id="c-q30">
+  <div class="q-lbl">Q30</div><div class="q-txt">Votre niveau d'études <span class="req">*</span></div>
+  <div class="scale-list">
+    <label class="scale"><input type="radio" name="q30" value="Niveau 1" onchange="onRadio('c-q30')"><span class="ck"></span>Niveau 1</label>
+    <label class="scale"><input type="radio" name="q30" value="Niveau 2" onchange="onRadio('c-q30')"><span class="ck"></span>Niveau 2</label>
+  </div>
+</div>
+
+<div class="card" id="c-q31">
+  <div class="q-lbl">Q31</div><div class="q-txt">Votre filière <span class="req">*</span></div>
+
+  <div class="fil-grp">
+    <div class="fil-ttl">🇫🇷 BTS — Commerce & Gestion</div>
+    <div class="fil-pills">
+      <label class="opt"><input type="radio" name="q31" value="BTS MCV" onchange="onRadio('c-q31')"><span class="ck"></span>MCV</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS CGE" onchange="onRadio('c-q31')"><span class="ck"></span>CGE</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS GLT" onchange="onRadio('c-q31')"><span class="ck"></span>GLT</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS BQ" onchange="onRadio('c-q31')"><span class="ck"></span>BQ</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS GRH" onchange="onRadio('c-q31')"><span class="ck"></span>GRH</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS DOT" onchange="onRadio('c-q31')"><span class="ck"></span>DOT</label>
+    </div>
+  </div>
+
+  <div class="fil-grp">
+    <div class="fil-ttl">🇬🇧 HND — Business (Anglophone)</div>
+    <div class="fil-pills">
+      <label class="opt"><input type="radio" name="q31" value="HND Accountancy" onchange="onRadio('c-q31')"><span class="ck"></span>Accountancy</label>
+      <label class="opt"><input type="radio" name="q31" value="HND Logistics & Transport" onchange="onRadio('c-q31')"><span class="ck"></span>Logistics & Transport</label>
+    </div>
+  </div>
+
+  <div class="fil-grp">
+    <div class="fil-ttl">🇫🇷 BTS — Industrie & Technologie</div>
+    <div class="fil-pills">
+      <label class="opt"><input type="radio" name="q31" value="BTS MAVA" onchange="onRadio('c-q31')"><span class="ck"></span>MAVA</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS CHS" onchange="onRadio('c-q31')"><span class="ck"></span>CHS</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS TP" onchange="onRadio('c-q31')"><span class="ck"></span>TP</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS RSE" onchange="onRadio('c-q31')"><span class="ck"></span>RSE</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS FC" onchange="onRadio('c-q31')"><span class="ck"></span>FC</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS ELECT" onchange="onRadio('c-q31')"><span class="ck"></span>ELECT</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS PME" onchange="onRadio('c-q31')"><span class="ck"></span>PME</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS ISA" onchange="onRadio('c-q31')"><span class="ck"></span>ISA</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS MKA" onchange="onRadio('c-q31')"><span class="ck"></span>MKA</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS ME" onchange="onRadio('c-q31')"><span class="ck"></span>ME</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS M.P" onchange="onRadio('c-q31')"><span class="ck"></span>M.P</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS Infographie" onchange="onRadio('c-q31')"><span class="ck"></span>Infographie</label>
+      <label class="opt"><input type="radio" name="q31" value="BTS Infog. Industrielle" onchange="onRadio('c-q31')"><span class="ck"></span>Infog. Industrielle</label>
+    </div>
+  </div>
+
+  <div class="fil-grp">
+    <div class="fil-ttl">🇬🇧 HND — Technology (Anglophone)</div>
+    <div class="fil-pills">
+      <label class="opt"><input type="radio" name="q31" value="HND Software Engineering" onchange="onRadio('c-q31')"><span class="ck"></span>Software Engineering</label>
+    </div>
+  </div>
+
+  <div class="fil-grp">
+    <div class="fil-ttl">🎓 Cycle Licence</div>
+    <div class="fil-pills">
+      <label class="opt"><input type="radio" name="q31" value="Licence 1" onchange="onRadio('c-q31')"><span class="ck"></span>Licence 1</label>
+      <label class="opt"><input type="radio" name="q31" value="Licence 2" onchange="onRadio('c-q31')"><span class="ck"></span>Licence 2</label>
+      <label class="opt"><input type="radio" name="q31" value="Licence 3" onchange="onRadio('c-q31')"><span class="ck"></span>Licence 3</label>
+      <label class="opt"><input type="radio" name="q31" value="Master 1" onchange="onRadio('c-q31')"><span class="ck"></span>Master 1</label>
+      <label class="opt"><input type="radio" name="q31" value="Master 2" onchange="onRadio('c-q31')"><span class="ck"></span>Master 2</label>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMIT -->
+<div class="submit-area">
+  <button class="submit-btn" id="submit-btn" onclick="sendToSheets()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    Soumettre mes réponses
+  </button>
+  <p class="submit-note">Vos réponses seront enregistrées de façon anonyme dans notre base de données sécurisée. Merci pour votre participation 🙏</p>
+</div>
+
+</div><!-- /form-area -->
+
+<!-- SUCCESS -->
+<div class="success" id="success">
+  <div class="suc-circle">✓</div>
+  <h2>Merci pour votre participation !</h2>
+  <p>Vos réponses ont été transmises au service Commercial & Marketing de JFN-HUI.<br><br>Elles contribueront à améliorer la qualité de votre formation.</p>
+  <p style="margin-top:18px;font-size:12px;color:#9CA3AF;">— Service Commercial & Marketing · JFN-HUI Douala</p>
+</div>
+
+<script>
+const CRITERES = [
+  'Taux de réussite','Frais de scolarité','Insertion professionnelle',
+  'Cadre de formation','Réputation','Proximité domicile',
+  'Offre de bourse','Équipements de formation','Atouts divers (stage, résidence…)'
+];
+const ETABS = ['IUGET','IUC','IME','JFN','IUG (ESG/ISTAG…)','ISTAMA','IUL (Leader)'];
+
+// ── PROGRESS ──
+const TOTAL = 31;
+function prog() {
+  let n = 0;
+  // radio groups q2–q25, q29–q31
+  ['q2','q3','q4','q5','q6','q7','q8','q9','q10','q11','q12','q13','q14',
+   'q15','q16','q17','q18','q19','q20','q21','q22','q23','q24','q25',
+   'q29','q30','q31'].forEach(name => {
+    if (document.querySelector(`input[name="${name}"]:checked`)) n++;
+  });
+  // checkboxes q1
+  if (document.querySelector('input[name="q1"]:checked')) n++;
+  // textarea q28
+  if ((document.getElementById('q28')||{}).value && document.getElementById('q28').value.trim().length > 2) n++;
+  // rank q26
+  const q26done = CRITERES.some((_,i) => { const s=document.getElementById('r26-'+i); return s&&s.value; });
+  if (q26done) n++;
+  // rank q27
+  const q27done = ETABS.some((_,i) => { const s=document.getElementById('r27-'+i); return s&&s.value; });
+  if (q27done) n++;
+
+  const pct = Math.min(100, Math.round((n/TOTAL)*100));
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-txt').textContent = n + ' réponse' + (n>1?'s':'') + ' enregistrée' + (n>1?'s':'');
+}
+
+function onRadio(cardId) {
+  document.getElementById(cardId).classList.add('ok');
+  prog();
+}
+function onCheck(name, cardId) {
+  if (document.querySelector(`input[name="${name}"]:checked`))
+    document.getElementById(cardId).classList.add('ok');
+  prog();
+}
+
+// ── GET VALUE HELPERS ──
+function radio(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '—';
+}
+function checks(name) {
+  const els = document.querySelectorAll(`input[name="${name}"]:checked`);
+  return els.length ? [...els].map(e=>e.value).join(', ') : '—';
+}
+function rankVal(prefix, items) {
+  return items.map((item,i) => {
+    const s = document.getElementById(prefix+'-'+i);
+    return s && s.value ? item+':'+s.value : null;
+  }).filter(Boolean).join(' | ') || '—';
+}
+
+// ── GOOGLE SHEETS ──
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzXWUGK9Wx1FvtETLRt-u62kyskRJSFeLcR6ayfvdG8OLbN7whSKT1rE1rUQgkL54aNQ/exec';
+
+function sendToSheets() {
+  var btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white" style="animation:spin 1s linear infinite"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" opacity=".3"/><path d="M20 12a8 8 0 0 0-8-8v2a6 6 0 0 1 6 6z"/></svg> Envoi en cours…';
+
+  var q1autre = (document.getElementById('q1-autre').value||'').trim();
+  var q1val   = checks('q1') + (q1autre ? ' | Autre: ' + q1autre : '');
+
+  // Construire les paramètres en GET (contourne les restrictions CORS sur iOS)
+  var params = {
+    q1:  q1val,
+    q2:  radio('q2'),  q3:  radio('q3'),  q4:  radio('q4'),
+    q5:  radio('q5'),  q6:  radio('q6'),  q7:  radio('q7'),
+    q8:  radio('q8'),  q9:  radio('q9'),  q10: radio('q10'),
+    q11: radio('q11'), q12: radio('q12'), q13: radio('q13'),
+    q14: radio('q14'), q15: radio('q15'), q16: radio('q16'),
+    q17: radio('q17'), q18: radio('q18'), q19: radio('q19'),
+    q20: radio('q20'), q21: radio('q21'), q22: radio('q22'),
+    q23: radio('q23'), q24: radio('q24'), q25: radio('q25'),
+    q26: rankVal('r26', CRITERES),
+    q27: rankVal('r27', ETABS),
+    q28: (document.getElementById('q28').value||'').trim() || 'Aucune suggestion',
+    q29: radio('q29'), q30: radio('q30'), q31: radio('q31')
+  };
+
+  // Encoder en query string
+  var qs = Object.keys(params).map(function(k) {
+    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+
+  var fullUrl = SCRIPT_URL + '?' + qs;
+
+  // Envoyer via une image (technique universelle iOS/Android/Desktop, pas de CORS)
+  var img = new Image();
+  img.onload = img.onerror = function() { showSuccess(); };
+  img.src = fullUrl;
+
+  // Fallback : afficher succès après 3s même si l'image ne répond pas
+  setTimeout(showSuccess, 3000);
+}
+
+function showSuccess() {
+  if (document.getElementById('form-area').style.display === 'none') return; // déjà appelé
+  document.getElementById('form-area').style.display = 'none';
+  document.getElementById('success').style.display = 'block';
+  document.querySelector('.prog').style.display = 'none';
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
